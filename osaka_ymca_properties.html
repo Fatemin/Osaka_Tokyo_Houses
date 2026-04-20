@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>大阪YMCA学院 — 附近房源一览</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#ffffff;--bg2:#f5f5f3;--bg3:#efefed;
+  --text:#1a1a18;--text2:#5f5e5a;--text3:#888780;
+  --border:rgba(0,0,0,0.12);--border2:rgba(0,0,0,0.22);--border3:rgba(0,0,0,0.32);
+  --radius-md:8px;--radius-lg:12px;
+  --info-bg:#E6F1FB;--info-text:#185FA5;
+  --teal-bg:#E1F5EE;--teal-text:#0F6E56;
+  --purple-bg:#EEEDFE;--purple-text:#534AB7;
+  --green-bg:#EAF3DE;--green-text:#3B6D11;
+  --amber-bg:#FAEEDA;--amber-text:#854F0B;
+}
+@media(prefers-color-scheme:dark){
+  :root{
+    --bg:#1c1c1a;--bg2:#252523;--bg3:#2e2e2b;
+    --text:#f0efe8;--text2:#b4b2a9;--text3:#888780;
+    --border:rgba(255,255,255,0.1);--border2:rgba(255,255,255,0.18);--border3:rgba(255,255,255,0.28);
+    --info-bg:#0c447c;--info-text:#b5d4f4;
+    --teal-bg:#085041;--teal-text:#9FE1CB;
+    --purple-bg:#3C3489;--purple-text:#CECBF6;
+    --green-bg:#27500A;--green-text:#C0DD97;
+    --amber-bg:#633806;--amber-text:#FAC775;
+  }
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg3);color:var(--text);min-height:100vh;padding:1.5rem}
+.container{max-width:800px;margin:0 auto}
+.header{padding:1rem 0;border-bottom:0.5px solid var(--border);margin-bottom:1.5rem}
+.header h1{font-size:18px;font-weight:500;color:var(--text)}
+.header p{font-size:13px;color:var(--text2);margin-top:4px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:1rem}
+.stat{background:var(--bg2);border-radius:var(--radius-md);padding:0.75rem 1rem}
+.stat-label{font-size:11px;color:var(--text3);margin-bottom:4px}
+.stat-value{font-size:20px;font-weight:500;color:var(--text)}
+.filters{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:1rem}
+.filter-btn{font-size:12px;padding:4px 10px;border:0.5px solid var(--border2);border-radius:99px;background:transparent;color:var(--text2);cursor:pointer;font-family:inherit}
+.filter-btn:hover{background:var(--bg2)}
+.filter-btn.active{background:var(--bg2);color:var(--text);border-color:var(--border3)}
+.list{display:flex;flex-direction:column;gap:6px}
+.property-card{background:var(--bg);border:0.5px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;transition:border-color 0.15s}
+.property-card:hover{border-color:var(--border2)}
+.property-card.open{border-color:var(--border3)}
+.card-header{display:grid;grid-template-columns:2rem 1fr auto auto auto auto auto;align-items:center;gap:10px;padding:0.75rem 1rem;cursor:pointer}
+.card-num{font-size:11px;color:var(--text3);font-weight:500}
+.card-name{font-size:14px;font-weight:500;color:var(--text)}
+.card-room{font-size:12px;color:var(--text2)}
+.card-tag{font-size:11px;padding:2px 8px;border-radius:99px;white-space:nowrap;cursor:default}
+.tag-jissha{background:var(--teal-bg);color:var(--teal-text)}
+.tag-itandi{background:var(--info-bg);color:var(--info-text)}
+.tag-ii{background:var(--purple-bg);color:var(--purple-text)}
+.tag-confirmed{background:var(--green-bg);color:var(--green-text);cursor:pointer}
+.tag-unconfirmed{background:var(--amber-bg);color:var(--amber-text);cursor:pointer}
+.tag-caution{background:#FCEBEB;color:#A32D2D;cursor:pointer}
+@media(prefers-color-scheme:dark){.tag-caution{background:#501313;color:#F7C1C1}}
+.card-rent{font-size:14px;font-weight:500;color:var(--text);white-space:nowrap}
+.card-rent-sub{font-size:11px;font-weight:400;color:var(--text2)}
+.card-walk{font-size:12px;color:var(--text2);white-space:nowrap}
+.chevron{font-size:12px;color:var(--text3);transition:transform 0.2s;user-select:none}
+.open .chevron{transform:rotate(180deg)}
+.card-detail{display:none;padding:0 1rem 1rem;border-top:0.5px solid var(--border)}
+.open .card-detail{display:block}
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:1rem}
+.detail-section h3{font-size:11px;font-weight:500;color:var(--text3);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px;margin-top:1rem}
+.detail-section h3:first-child{margin-top:0}
+.detail-row{display:flex;justify-content:space-between;align-items:flex-start;padding:5px 0;border-bottom:0.5px solid var(--border);gap:8px}
+.detail-row:last-child{border-bottom:none}
+.detail-key{font-size:12px;color:var(--text2);flex-shrink:0}
+.detail-val{font-size:12px;color:var(--text);text-align:right}
+.detail-val a{color:var(--info-text);text-decoration:none}
+.detail-val a:hover{text-decoration:underline}
+.equip-tags{display:flex;flex-wrap:wrap;gap:4px;justify-content:flex-end}
+.equip-tag{font-size:11px;padding:2px 7px;border-radius:4px;background:var(--bg2);color:var(--text2)}
+.no-results{text-align:center;padding:2rem;color:var(--text2);font-size:14px}
+@media(max-width:600px){
+  .stats{grid-template-columns:repeat(2,1fr)}
+  .detail-grid{grid-template-columns:1fr}
+  .card-header{grid-template-columns:1.5rem 1fr auto auto auto}
+  .card-walk{display:none}
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>大阪YMCA学院 — 附近房源一览</h1>
+    <p>学校地址：大阪府大阪市天王寺区南河堀町9-52　最寄り：天王寺駅 徒歩5分</p>
+  </div>
+  <div class="stats">
+    <div class="stat"><div class="stat-label">物件総数</div><div class="stat-value" id="s-total">25</div></div>
+    <div class="stat"><div class="stat-label">平均家賃</div><div class="stat-value" id="s-avg">—</div></div>
+    <div class="stat"><div class="stat-label">最安値</div><div class="stat-value" id="s-min">—</div></div>
+    <div class="stat"><div class="stat-label">最高値</div><div class="stat-value" id="s-max">—</div></div>
+  </div>
+  <div class="filters">
+    <button class="filter-btn active" onclick="setFilter('all',this)">すべて</button>
+    <button class="filter-btn" onclick="setFilter('自社',this)">自社</button>
+    <button class="filter-btn" onclick="setFilter('ITANDI BB',this)">ITANDI BB</button>
+    <button class="filter-btn" onclick="setFilter('いい生活',this)">いい生活</button>
+    <button class="filter-btn" onclick="setFilter('walk5',this)">徒歩5分以内</button>
+    <button class="filter-btn" onclick="setFilter('walk10',this)">徒歩10分以内</button>
+    <button class="filter-btn" onclick="setFilter('under7',this)">家賃7万以下</button>
+    <button class="filter-btn" onclick="setFilter('confirmed',this)">確認済のみ</button>
+    <button class="filter-btn" onclick="setFilter('unconfirmed',this)">未確認のみ</button>
+    <button class="filter-btn" onclick="setFilter('caution',this)">緊急連絡先必要</button>
+  </div>
+  <div class="list" id="list"></div>
+  <div class="no-results" id="no-results" style="display:none">条件に合う物件がありません</div>
+</div>
+<script>
+const props = [
+  {id:1,name:"メゾン夕陽ヶ丘",room:"0304",addr:"大阪市天王寺区上本町8丁目6番9号",source:"自社",rent:69500,mgmt:8000,total:77500,deposit:0,key_money:"なし",walk:9,bike:3,train:"四天王寺前夕陽ヶ丘駅→天王寺駅(約2分)+徒歩5分 合計約13分",nearest:"四天王寺前夕陽ヶ丘駅 徒歩6分",mgmt_co:"株式会社TAKUTO PM課",mgmt_tel:"06-6201-1603",link:null,madori:"1K",area:"25.65㎡",avail:"2026年6月下旬",floor:"3階/9階建",built:"2008年4月(築18年)",struct:"鉄筋コンクリート",elevator:true,furniture:false,net:"無料(Ucom光)",equip:["オートロック","防犯カメラ","宅配BOX","バス・トイレ別","エアコン","室内洗濯機"],guarantee:"あり(エポス→ニッポンインシュア→JRAG)",foreign:"記載なし",key_fee:22000,other_fees:"退去時RC 33,000円"},
+  {id:3,name:"アークアベニュー天王寺",room:"905",addr:"大阪市天王寺区寺田町2丁目2-11",source:"いい生活",rent:59000,mgmt:6000,total:65000,deposit:0,key_money:"59,000円",walk:17,bike:6,train:"寺田町駅→天王寺駅(約2分)+徒歩5分 合計約10分",nearest:"JR寺田町駅 徒歩3分",mgmt_co:"松本ビル管理株式会社",mgmt_tel:"0666-277-600",link:"https://rent.es-square.net/bukken/chintai/mapSearch/detail/5370c06e-3f09-409d-88b2-0dd81d60c0be",madori:"1K",area:"24.30㎡",avail:"即入居",floor:"9階/14階建",built:"2008年8月(築17年)",struct:"鉄筋コンクリート",elevator:true,furniture:false,net:"記載なし",equip:["オートロック","防犯カメラ","宅配BOX","バス・トイレ別","エアコン","室内洗濯機"],guarantee:"記載なし",foreign:"記載なし",key_fee:0,other_fees:"—"},
+  {id:4,name:"阿倍野SURF RIDER",room:"0202",addr:"大阪市阿倍野区天王寺町南2丁目13番1号",source:"いい生活",rent:85000,mgmt:0,total:85000,deposit:30000,key_money:"なし",walk:20,bike:7,train:"河堀口駅→大阪阿部野橋駅(約2分)+徒歩5分 合計約10分",nearest:"近鉄南大阪線 河堀口駅 徒歩4分",mgmt_co:"ツインホーム株式会社 本店",mgmt_tel:"06-6622-8500",link:"https://rent.es-square.net/bukken/chintai/mapSearch/detail/79148218-8814-449c-93dd-28929e488828",madori:"1LDK",area:"43.25㎡",avail:"2026年5月20日",floor:"2階/2階建",built:"2007年2月(築19年)",struct:"軽量鉄骨",elevator:false,furniture:false,net:"記載なし",equip:["オートロック","バス・トイレ別","エアコン","室内洗濯機"],guarantee:"あり(積水シャーメゾンパートナーズ)",foreign:"可(国籍不問・日本国籍の緊急連絡先必要)",key_fee:16500,other_fees:"契約一時金150,000円 クリーニング59,400円"},
+  {id:5,name:"カサ サンボンギ",room:"0203",addr:"大阪市阿倍野区松崎町2丁目8番25号",source:"いい生活",rent:69000,mgmt:4500,total:73500,deposit:20000,key_money:"なし",walk:11,bike:4,train:"大阪阿部野橋駅から徒歩5分 合計約11分",nearest:"近鉄南大阪線 大阪阿部野橋駅 徒歩6分",mgmt_co:"ツインホーム株式会社 本店",mgmt_tel:"06-6622-8500",link:"https://rent.es-square.net/bukken/chintai/mapSearch/detail/c5791bd6-54bf-43a1-8a50-e276ac268d55",madori:"1K",area:"27.00㎡",avail:"即入居",floor:"2階/2階建",built:"2005年3月(築21年)",struct:"軽量鉄骨",elevator:false,furniture:false,net:"記載なし",equip:["オートロック","バス・トイレ別","エアコン"],guarantee:"あり(積水シャーメゾンパートナーズ)",foreign:"可(国籍不問・日本国籍の緊急連絡先必要)",key_fee:14300,other_fees:"契約一時金80,000円 クリーニング30,000円"},
+  {id:6,name:"セイワパレス夕陽丘",room:"1001",addr:"大阪市天王寺区夕陽丘町4-13",source:"いい生活",rent:72500,mgmt:10500,total:83000,deposit:0,key_money:"100,000円",walk:9,bike:3,train:"四天王寺前夕陽ヶ丘駅→天王寺駅(約2分)+徒歩5分 合計約10分",nearest:"大阪メトロ谷町線 四天王寺前夕陽ヶ丘駅 徒歩1分",mgmt_co:"生和コーポレーション株式会社 西日本本店",mgmt_tel:"06-6345-0550",link:"https://rent.es-square.net/bukken/chintai/mapSearch/detail/7a77996f-7c49-4e44-9c4e-65bd634d0c76",madori:"1R",area:"25.20㎡",avail:"相談(退去予定2026/04/30)",floor:"10階/11階建",built:"2006年3月(築20年)",struct:"鉄筋コンクリート",elevator:true,furniture:false,net:"記載なし",equip:["オートロック","防犯カメラ","宅配BOX","バス・トイレ別","エアコン","室内洗濯機"],guarantee:"あり(クレディセゾン)",foreign:"可(日本語会話能力必要・クレディセゾン保証)",key_fee:22000,other_fees:"室内除菌11,000円 退去時クリーニング38,500円"},
+  {id:7,name:"ルミナーレ天王寺",room:"0801",addr:"大阪市阿倍野区三明町2丁目1-6",source:"ITANDI BB",rent:69000,mgmt:10000,total:79000,deposit:0,key_money:"なし",walk:16,bike:6,train:"河堀口駅→大阪阿部野橋駅(約2分)+徒歩5分 合計約13分",nearest:"近鉄南大阪線 河堀口駅 徒歩6分",mgmt_co:"株式会社アルカディア管財",mgmt_tel:"06-6538-5353",link:"https://itandibb.com/rent_rooms/72752672",madori:"1K",area:"24.23㎡",avail:"相談",floor:"8階/10階建",built:"2008年2月(築18年)",struct:"鉄筋コンクリート",elevator:true,furniture:false,net:"記載なし",equip:["オートロック","防犯カメラ","宅配BOX","バス・トイレ別","エアコン","室内洗濯機"],guarantee:"あり(日本セーフティー)",foreign:"可(日本国籍の緊急連絡先必要)",key_fee:22000,other_fees:"室内清掃55,000円 コール24 16,500円"},
+  {id:8,name:"プレサンス天王寺勝山",room:"0603",addr:"大阪市天王寺区勝山4丁目12-22",source:"ITANDI BB",rent:68640,mgmt:7360,total:76000,deposit:0,key_money:"80,000円",walk:24,bike:8,train:"桃谷駅→天王寺駅(約3分)+徒歩5分 合計約15分",nearest:"JR大阪環状線 桃谷駅 徒歩7分",mgmt_co:"株式会社プレサンス",mgmt_tel:"06-4793-1660",link:"https://itandibb.com/rent_rooms/63365408",madori:"1K",area:"21.66㎡",avail:"相談",floor:"6階/15階建",built:"2024年7月(築1年)",struct:"鉄筋コンクリート",elevator:true,furniture:false,net:"無料",equip:["オートロック","防犯カメラ","宅配BOX","エアコン"],guarantee:"あり(ギャランティ/セーフティー)",foreign:"記載なし",key_fee:29700,other_fees:"退去時クリーニング35,000円 プレサポ24 1,320円/月"},
+  {id:9,name:"グランカーサ天王寺EAST",room:"0504",addr:"大阪市天王寺区国分町12-19",source:"ITANDI BB",rent:84000,mgmt:8000,total:92000,deposit:0,key_money:"なし",walk:19,bike:7,train:"寺田町駅→天王寺駅(約2分)+徒歩5分 合計約14分",nearest:"JR大阪環状線 寺田町駅 徒歩7分",mgmt_co:"株式会社長谷工ライブネット 大阪事務所",mgmt_tel:"06-6262-8450",link:"https://itandibb.com/rent_rooms/35954334",madori:"1DK",area:"26.24㎡",avail:"即入居",floor:"5階/11階建",built:"2022年1月(築4年)",struct:"鉄筋コンクリート",elevator:true,furniture:false,net:"無料",equip:["オートロック","防犯カメラ","宅配BOX","バス・トイレ別","エアコン","ペット相談可"],guarantee:"記載なし",foreign:"記載なし",key_fee:0,other_fees:"火災保険18,000円"},
+  {id:10,name:"エスリード天王寺ブランシェ",room:"702",addr:"大阪市天王寺区国分町17-1",source:"ITANDI BB",rent:69000,mgmt:5000,total:74000,deposit:0,key_money:"69,000円",walk:20,bike:7,train:"寺田町駅→天王寺駅(約2分)+徒歩5分 合計約12分",nearest:"JR大阪環状線 寺田町駅 徒歩5分",mgmt_co:"株式会社アフロ 管理開発部",mgmt_tel:"06-6578-2225",link:"https://itandibb.com/rent_rooms/73762885",madori:"1K",area:"21.09㎡",avail:"相談",floor:"7階/15階建",built:"2020年3月(築6年)",struct:"鉄筋コンクリート",elevator:true,furniture:false,net:"記載なし",equip:["オートロック","防犯カメラ","宅配BOX","バス・トイレ別","エアコン","ペット相談可"],guarantee:"あり",foreign:"可",key_fee:38500,other_fees:"消臭抗菌16,500円 退去時清掃27,500円 エアコン清掃15,400円"},
+  {id:11,name:"プレサンス天王寺ノースヴィアーレ",room:"1009",addr:"大阪市阿倍野区天王寺町北2丁目1-12",source:"ITANDI BB",rent:74740,mgmt:6260,total:81000,deposit:0,key_money:"100,000円",walk:17,bike:6,train:"寺田町駅→天王寺駅(約2分)+徒歩5分 合計約9分",nearest:"JR大阪環状線 寺田町駅 徒歩2分",mgmt_co:"株式会社プレサンス",mgmt_tel:"06-4793-1660",link:"https://itandibb.com/rent_rooms/63365569",madori:"1K",area:"23.2㎡",avail:"2026年4月下旬",floor:"10階/12階建",built:"2021年2月(築5年)",struct:"鉄筋コンクリート",elevator:true,furniture:false,net:"無料",equip:["オートロック","防犯カメラ","宅配BOX","エアコン"],guarantee:"あり(ギャランティ/セーフティー)",foreign:"記載なし",key_fee:29700,other_fees:"退去時クリーニング35,000円 プレサポ24 1,320円/月"},
+  {id:12,name:"Louis Residence 天王寺町北",room:"1003",addr:"大阪市阿倍野区天王寺町北2丁目24-13",source:"ITANDI BB",rent:83000,mgmt:9000,total:92000,deposit:0,key_money:"92,000円",walk:19,bike:7,train:"寺田町駅→天王寺駅(約2分)+徒歩5分 合計約12分",nearest:"JR大阪環状線 寺田町駅 徒歩5分",mgmt_co:"株式会社日本レジデンシャル",mgmt_tel:"06-6479-0757",link:"https://itandibb.com/rent_rooms/66146477",madori:"1K",area:"24.19㎡",avail:"即入居",floor:"10階/12階建",built:"2025年3月(築1年)",struct:"鉄筋コンクリート",elevator:true,furniture:false,net:"無料",equip:["オートロック","防犯カメラ","宅配BOX","バス・トイレ別","エアコン","ペット相談可"],guarantee:"あり",foreign:"記載なし",key_fee:15000,other_fees:"退去時清掃35,000円 火災保険15,000円"},
+  {id:13,name:"リヴィアス三明町",room:"101",addr:"大阪市阿倍野区三明町1丁目9-17",source:"ITANDI BB",rent:70000,mgmt:10000,total:80000,deposit:0,key_money:"なし",walk:15,bike:5,train:"天王寺駅まで徒歩9分+徒歩5分 合計約14分",nearest:"JR大阪環状線 天王寺駅 徒歩9分",mgmt_co:"株式会社FYC",mgmt_tel:"050-3187-7166",link:"https://itandibb.com/rent_rooms/73355870",madori:"1LDK",area:"26.77㎡",avail:"2026年4月27日",floor:"記載なし/8階建",built:"2020年1月(築6年)",struct:"鉄筋コンクリート",elevator:true,furniture:false,net:"記載なし",equip:["オートロック"],guarantee:"記載なし",foreign:"記載なし",key_fee:44000,other_fees:"火災保険18,000円 更新事務手数料5,500円"},
+  {id:14,name:"カーサ松崎町",room:"102",addr:"大阪市阿倍野区松崎町2丁目7-17",source:"ITANDI BB",rent:90000,mgmt:7200,total:97200,deposit:0,key_money:"180,000円",walk:11,bike:4,train:"大阪阿部野橋駅から徒歩5分 合計約12分",nearest:"近鉄南大阪線 大阪阿部野橋駅 徒歩7分",mgmt_co:"髙松エステート株式会社 大阪本社",mgmt_tel:"06-6308-7401",link:"https://itandibb.com/rent_rooms/53677684",madori:"1LDK",area:"40.07㎡",avail:"相談",floor:"1階/4階建",built:"2012年8月(築13年)",struct:"鉄筋コンクリート",elevator:false,furniture:false,net:"無料(J:COM)",equip:["オートロック","バス・トイレ別","エアコン","室内洗濯機"],guarantee:"あり(オリコフォレント)",foreign:"記載なし",key_fee:11000,other_fees:"ハウスクリーニング44,000円 火災保険24,000円 安心サポート1,650円/月"},
+  {id:15,name:"コンフォリア・リヴ天王寺寺田町ソルテラス",room:"0702",addr:"大阪市天王寺区寺田町2丁目2-25",source:"ITANDI BB",rent:89000,mgmt:12000,total:101000,deposit:0,key_money:"89,000円",walk:17,bike:6,train:"寺田町駅→天王寺駅(約2分)+徒歩5分 合計約11分",nearest:"JR大阪環状線 寺田町駅 徒歩4分",mgmt_co:"東急住宅リース株式会社 関西支店",mgmt_tel:"050-3177-4359",link:"https://itandibb.com/rent_rooms/70597594",madori:"1DK",area:"27.34㎡",avail:"2026年4月下旬",floor:"7階/13階建",built:"2026年4月(新築)",struct:"鉄筋コンクリート",elevator:true,furniture:false,net:"無料",equip:["オートロック","防犯カメラ","宅配BOX","バス・トイレ別","室内洗濯機","24時間ゴミ出し可"],guarantee:"あり(エポスカード)",foreign:"記載なし",key_fee:22000,other_fees:"清掃費27,500円 エアコン清掃8,250円 火災保険16,550円"},
+  {id:16,name:"ヴェール天王寺",room:"406",addr:"大阪市天王寺区大道3丁目8-7",source:"ITANDI BB",rent:40000,mgmt:5000,total:45000,deposit:0,key_money:"なし",walk:12,bike:4,train:"寺田町駅→天王寺駅(約2分)+徒歩5分 合計約13分",nearest:"JR大阪環状線 寺田町駅 徒歩6分",mgmt_co:"株式会社アフロ 管理開発部",mgmt_tel:"06-6578-2225",link:"https://itandibb.com/rent_rooms/73714472",madori:"1K",area:"18.75㎡",avail:"相談",floor:"4階/10階建",built:"1996年12月(築29年)",struct:"鉄骨造",elevator:true,furniture:false,net:"記載なし",equip:["オートロック","エアコン"],guarantee:"あり",foreign:"可",key_fee:0,other_fees:"火災保険18,000円"},
+  {id:17,name:"ララプレイス天王寺シエロ",room:"1002",addr:"大阪市天王寺区大道1丁目2-18",source:"ITANDI BB",rent:71440,mgmt:8560,total:80000,deposit:0,key_money:"100,000円",walk:10,bike:4,train:"天王寺駅まで徒歩8〜9分+徒歩5分 合計約14分",nearest:"大阪メトロ谷町線 天王寺駅 徒歩8分",mgmt_co:"株式会社プレサンス",mgmt_tel:"06-4793-1660",link:"https://itandibb.com/rent_rooms/63371599",madori:"1K",area:"21.66㎡",avail:"相談",floor:"10階/14階建",built:"2020年7月(築5年)",struct:"鉄筋コンクリート",elevator:true,furniture:false,net:"無料",equip:["オートロック","防犯カメラ","宅配BOX","エアコン"],guarantee:"あり(ギャランティ/セーフティー)",foreign:"記載なし",key_fee:29700,other_fees:"退去時クリーニング35,000円 プレサポ24 1,320円/月"},
+  {id:18,name:"コンフォートZEN",room:"302",addr:"大阪市天王寺区大道2丁目11-4",source:"ITANDI BB",rent:100000,mgmt:8000,total:108000,deposit:0,key_money:"200,000円",walk:11,bike:4,train:"天王寺駅まで徒歩9分+徒歩5分 合計約14分",nearest:"JR大阪環状線 天王寺駅 徒歩9分",mgmt_co:"株式会社JPMC 大阪管理センター",mgmt_tel:"050-1721-2891",link:"https://itandibb.com/rent_rooms/62669441",madori:"1LDK",area:"43.74㎡",avail:"2026年5月下旬",floor:"3階/8階建",built:"2003年1月(築23年)",struct:"鉄筋コンクリート",elevator:true,furniture:false,net:"無料",equip:["オートロック","バス・トイレ別","エアコン","室内洗濯機"],guarantee:"あり(JPMCファイナンス)",foreign:"記載なし",key_fee:27500,other_fees:"消臭抗菌17,600円 退去時清掃38,500円 安心サポート1,870円/月"},
+  {id:19,name:"FRONT FIELD Tennoji",room:"605",addr:"大阪市天王寺区堀越町6-11",source:"ITANDI BB",rent:82000,mgmt:8000,total:90000,deposit:0,key_money:"82,000円",walk:8,bike:3,train:"天王寺駅まで徒歩6分+徒歩5分 合計約11分",nearest:"各線 天王寺駅 徒歩6分",mgmt_co:"信和コミュニティ株式会社",mgmt_tel:"06-6838-4803",link:"https://itandibb.com/rent_rooms/71931160",madori:"1R",area:"23.18㎡",avail:"即入居",floor:"6階/11階建",built:"2018年3月(築8年)",struct:"鉄筋コンクリート",elevator:true,furniture:false,net:"無料",equip:["オートロック","防犯カメラ","宅配BOX","バス・トイレ別","エアコン","室内洗濯機","ペット相談可"],guarantee:"あり",foreign:"記載なし",key_fee:11000,other_fees:"火災保険20,000円"},
+  {id:20,name:"ラルテ天王寺",room:"403",addr:"大阪市天王寺区堀越町7-19",source:"ITANDI BB",rent:87000,mgmt:10000,total:97000,deposit:0,key_money:"87,000円",walk:8,bike:3,train:"天王寺駅まで徒歩7分+徒歩5分 合計約12分",nearest:"大阪メトロ御堂筋線 天王寺駅 徒歩7分",mgmt_co:"株式会社アドミニ",mgmt_tel:"06-6271-1522",link:"https://itandibb.com/rent_rooms/70243641",madori:"1LDK",area:"29.99㎡",avail:"記載なし",floor:"4階/8階建",built:"2006年4月(築20年)",struct:"鉄筋コンクリート",elevator:true,furniture:false,net:"無料(J:COM)",equip:["オートロック","防犯カメラ","バス・トイレ別","室内洗濯機","ペット可","2人入居可"],guarantee:"あり(全保連/Room iD)",foreign:"可(Room iDグローバル)",key_fee:27000,other_fees:"定額水道料2,700円/月 付帯補償料560円/月"},
+  {id:21,name:"アヴァンセ天王寺",room:"310",addr:"大阪市天王寺区堀越町7-20",source:"ITANDI BB",rent:50000,mgmt:10000,total:60000,deposit:0,key_money:"なし",walk:8,bike:3,train:"天王寺駅まで徒歩8分+徒歩5分 合計約13分",nearest:"各線 天王寺駅 徒歩8分",mgmt_co:"サムティプロパティマネジメント株式会社",mgmt_tel:"06-6399-8399",link:"https://itandibb.com/rent_rooms/59928499",madori:"1R",area:"21㎡",avail:"相談",floor:"3階/7階建",built:"1990年10月(築35年)",struct:"鉄骨鉄筋コンクリート",elevator:false,furniture:false,net:"記載なし",equip:["宅配BOX","駐輪場","バイク置き場"],guarantee:"あり",foreign:"記載なし",key_fee:22000,other_fees:"退去時清掃33,000円 定額水道3,300円/月 事務手数料8,000円"},
+  {id:22,name:"ライオンズマンション天王寺",room:"405",addr:"大阪市天王寺区堀越町9-20",source:"ITANDI BB",rent:46000,mgmt:9000,total:55000,deposit:0,key_money:"50,000円",walk:7,bike:3,train:"天王寺駅まで徒歩5分+徒歩5分 合計約10分",nearest:"各線 天王寺駅 徒歩5分",mgmt_co:"ベスト・リアルティー株式会社",mgmt_tel:"06-6131-8900",link:"https://itandibb.com/rent_rooms/67124313",madori:"1R",area:"21.06㎡",avail:"即入居",floor:"記載なし/15階建",built:"1985年6月(築40年)",struct:"鉄骨鉄筋コンクリート",elevator:true,furniture:false,net:"記載なし",equip:["オートロック","エアコン","室内洗濯機","リフォーム済"],guarantee:"あり",foreign:"記載なし",key_fee:22000,other_fees:"室内清掃22,000円 くらしーど24 1,000円/月 火災保険16,000円"},
+  {id:23,name:"アクアプレイス天王寺Ⅱ",room:"705",addr:"大阪市天王寺区大道3丁目6-8",source:"ITANDI BB",rent:77500,mgmt:11000,total:88500,deposit:0,key_money:"77,500円",walk:12,bike:4,train:"天王寺駅まで徒歩7分+徒歩5分 合計約12分",nearest:"JR大阪環状線 天王寺駅 徒歩7分",mgmt_co:"株式会社リブ・マックス 神戸管理部",mgmt_tel:"—",link:"https://itandibb.com/rent_rooms/66099914",madori:"1K",area:"21.75㎡",avail:"2026年7月中旬",floor:"7階/14階建",built:"2016年2月(築10年)",struct:"鉄筋コンクリート",elevator:false,furniture:true,net:"対応",equip:["オートロック","バス・トイレ別","室内洗濯機","家具付き"],guarantee:"あり(初回100%)",foreign:"可",key_fee:33000,other_fees:"室内清掃55,000円 事務手数料22,000円 リブクラブ2,200円/月 SBI保険800円/月"},
+  {id:24,name:"ラシュレエグゼ天王寺",room:"704",addr:"大阪市天王寺区北河堀町3-3",source:"ITANDI BB",rent:66000,mgmt:10000,total:76000,deposit:0,key_money:"なし",walk:6,bike:3,train:"天王寺駅まで徒歩6分+徒歩5分 合計約11分",nearest:"JR大阪環状線 天王寺駅 徒歩6分",mgmt_co:"株式会社ダイセイファシリティ",mgmt_tel:"06-6210-5622",link:"https://itandibb.com/rent_rooms/47042186",madori:"1K",area:"22.17㎡",avail:"相談",floor:"7階/14階建",built:"2016年10月(築9年)",struct:"鉄筋コンクリート",elevator:true,furniture:false,net:"記載なし",equip:["オートロック"],guarantee:"記載なし",foreign:"記載なし",key_fee:0,other_fees:"要問合せ"},
+  {id:25,name:"レ・コンフォルト",room:"502",addr:"大阪市天王寺区南河堀町9-23",source:"ITANDI BB",rent:74500,mgmt:11000,total:85500,deposit:0,key_money:"74,500円",walk:2,bike:1,train:"天王寺駅まで徒歩4分+徒歩5分 合計約9分",nearest:"大阪メトロ御堂筋線 天王寺駅 徒歩4分",mgmt_co:"株式会社リブ・マックス 神戸管理部",mgmt_tel:"—",link:"https://itandibb.com/rent_rooms/73311923",madori:"1K",area:"21.12㎡",avail:"2026年5月中旬",floor:"5階/10階建",built:"2004年3月(築22年)",struct:"鉄筋コンクリート",elevator:true,furniture:true,net:"対応",equip:["オートロック","バス・トイレ別","家具付き"],guarantee:"あり(初回100%)",foreign:"可",key_fee:33000,other_fees:"室内清掃55,000円 事務手数料22,000円 リブクラブ2,200円/月 SBI保険800円/月"}
+];
+
+const confirmed = {};
+props.forEach(function(p){ confirmed[p.id] = 'unconfirmed'; });
+confirmed[4] = 'caution';
+confirmed[5] = 'caution';
+confirmed[6] = 'confirmed';
+confirmed[7] = 'caution';
+
+function fmt(n){ return n ? '\xA5'+n.toLocaleString() : '\u2014'; }
+
+function sourceTag(s){
+  if(s==='自社') return '<span class="card-tag tag-jissha">自社</span>';
+  if(s==='ITANDI BB') return '<span class="card-tag tag-itandi">ITANDI BB</span>';
+  return '<span class="card-tag tag-ii">いい生活</span>';
+}
+
+function confirmedTag(id){
+  var c = confirmed[id];
+  var cls = c==='confirmed' ? 'tag-confirmed' : c==='caution' ? 'tag-caution' : 'tag-unconfirmed';
+  var label = c==='confirmed' ? '確認済' : c==='caution' ? '緊急連絡先必要' : '未確認';
+  return '<span class="card-tag '+cls+'" onclick="toggleConfirm(event,'+id+')">'+label+'</span>';
+}
+
+function toggleConfirm(e, id){
+  e.stopPropagation();
+  var c = confirmed[id];
+  confirmed[id] = c==='unconfirmed' ? 'confirmed' : c==='confirmed' ? 'caution' : 'unconfirmed';
+  render();
+}
+
+var currentFilter = 'all';
+
+function setFilter(f, btn){
+  currentFilter = f;
+  var btns = document.querySelectorAll('.filter-btn');
+  for(var i=0;i<btns.length;i++) btns[i].classList.remove('active');
+  btn.classList.add('active');
+  render();
+}
+
+function filtered(){
+  return props.filter(function(p){
+    if(currentFilter==='all') return true;
+    if(currentFilter==='自社') return p.source==='自社';
+    if(currentFilter==='ITANDI BB') return p.source==='ITANDI BB';
+    if(currentFilter==='いい生活') return p.source==='いい生活';
+    if(currentFilter==='walk5') return p.walk<=5;
+    if(currentFilter==='walk10') return p.walk<=10;
+    if(currentFilter==='under7') return p.rent<=70000;
+    if(currentFilter==='confirmed') return confirmed[p.id]==='confirmed';
+    if(currentFilter==='unconfirmed') return confirmed[p.id]==='unconfirmed';
+    if(currentFilter==='caution') return confirmed[p.id]==='caution';
+    return true;
+  });
+}
+
+function render(){
+  var list = document.getElementById('list');
+  var noRes = document.getElementById('no-results');
+  var data = filtered();
+  document.getElementById('s-total').textContent = data.length;
+  if(data.length){
+    var rents = data.map(function(p){ return p.rent; });
+    var avg = Math.round(rents.reduce(function(a,b){ return a+b; },0)/rents.length/1000)*1000;
+    document.getElementById('s-avg').textContent = '\xA5'+avg.toLocaleString();
+    document.getElementById('s-min').textContent = '\xA5'+Math.min.apply(null,rents).toLocaleString();
+    document.getElementById('s-max').textContent = '\xA5'+Math.max.apply(null,rents).toLocaleString();
+  }
+  noRes.style.display = data.length ? 'none' : 'block';
+  var html = '';
+  for(var i=0;i<data.length;i++){
+    var p = data[i];
+    var linkHtml = p.link ? '<a href="'+p.link+'" target="_blank">リンクを開く</a>' : '—';
+    var equipHtml = '';
+    for(var j=0;j<p.equip.length;j++) equipHtml += '<span class="equip-tag">'+p.equip[j]+'</span>';
+    var num = String(p.id); if(num.length<2) num='0'+num;
+    html += '<div class="property-card" id="card-'+p.id+'">';
+    html += '<div class="card-header" onclick="toggle('+p.id+')">';
+    html += '<span class="card-num">'+num+'</span>';
+    html += '<div><div class="card-name">'+p.name+'</div><div class="card-room">'+p.room+' · '+p.madori+' · '+p.area+'</div></div>';
+    html += sourceTag(p.source);
+    html += confirmedTag(p.id);
+    html += '<span class="card-rent">'+fmt(p.rent)+'<span class="card-rent-sub">/月</span></span>';
+    html += '<span class="card-walk">徒歩'+p.walk+'分</span>';
+    html += '<span class="chevron">▼</span>';
+    html += '</div>';
+    html += '<div class="card-detail">';
+    html += '<div class="detail-grid">';
+    html += '<div class="detail-section">';
+    html += '<h3>物件情報</h3>';
+    html += '<div class="detail-row"><span class="detail-key">住所</span><span class="detail-val">'+p.addr+'</span></div>';
+    html += '<div class="detail-row"><span class="detail-key">間取り</span><span class="detail-val">'+p.madori+'</span></div>';
+    html += '<div class="detail-row"><span class="detail-key">専有面積</span><span class="detail-val">'+p.area+'</span></div>';
+    html += '<div class="detail-row"><span class="detail-key">所在階/階建</span><span class="detail-val">'+p.floor+'</span></div>';
+    html += '<div class="detail-row"><span class="detail-key">築年数</span><span class="detail-val">'+p.built+'</span></div>';
+    html += '<div class="detail-row"><span class="detail-key">構造</span><span class="detail-val">'+p.struct+'</span></div>';
+    html += '<div class="detail-row"><span class="detail-key">入居可能時期</span><span class="detail-val">'+p.avail+'</span></div>';
+    html += '<div class="detail-row"><span class="detail-key">物件リンク</span><span class="detail-val">'+linkHtml+'</span></div>';
+    html += '<h3>設備</h3>';
+    html += '<div class="detail-row"><span class="detail-key">エレベーター</span><span class="detail-val">'+(p.elevator?'あり':'なし')+'</span></div>';
+    html += '<div class="detail-row"><span class="detail-key">家具</span><span class="detail-val">'+(p.furniture?'付き':'なし')+'</span></div>';
+    html += '<div class="detail-row"><span class="detail-key">インターネット</span><span class="detail-val">'+p.net+'</span></div>';
+    html += '<div class="detail-row"><span class="detail-key">その他設備</span><span class="detail-val"><div class="equip-tags">'+equipHtml+'</div></span></div>';
+    html += '</div>';
+    html += '<div class="detail-section">';
+    html += '<h3>交通</h3>';
+    html += '<div class="detail-row"><span class="detail-key">最寄り駅</span><span class="detail-val">'+p.nearest+'</span></div>';
+    html += '<div class="detail-row"><span class="detail-key">電車</span><span class="detail-val">'+p.train+'</span></div>';
+    html += '<div class="detail-row"><span class="detail-key">徒歩</span><span class="detail-val">約'+p.walk+'分</span></div>';
+    html += '<div class="detail-row"><span class="detail-key">自転車</span><span class="detail-val">約'+p.bike+'分</span></div>';
+    html += '<h3>費用</h3>';
+    html += '<div class="detail-row"><span class="detail-key">家賃</span><span class="detail-val">'+fmt(p.rent)+'</span></div>';
+    html += '<div class="detail-row"><span class="detail-key">管理費/共益費</span><span class="detail-val">'+fmt(p.mgmt)+'</span></div>';
+    html += '<div class="detail-row"><span class="detail-key">月合計</span><span class="detail-val" style="font-weight:500">'+fmt(p.total)+'</span></div>';
+    html += '<div class="detail-row"><span class="detail-key">敷金</span><span class="detail-val">'+(p.deposit?fmt(p.deposit):'なし')+'</span></div>';
+    html += '<div class="detail-row"><span class="detail-key">礼金</span><span class="detail-val">'+p.key_money+'</span></div>';
+    html += '<div class="detail-row"><span class="detail-key">鍵交換代等</span><span class="detail-val">'+(p.key_fee?fmt(p.key_fee):'なし')+'</span></div>';
+    html += '<div class="detail-row"><span class="detail-key">その他費用</span><span class="detail-val">'+p.other_fees+'</span></div>';
+    html += '<h3>契約・保証</h3>';
+    html += '<div class="detail-row"><span class="detail-key">保証会社</span><span class="detail-val">'+p.guarantee+'</span></div>';
+    html += '<div class="detail-row"><span class="detail-key">外国籍</span><span class="detail-val">'+p.foreign+'</span></div>';
+    html += '<h3>管理会社</h3>';
+    html += '<div class="detail-row"><span class="detail-key">会社名</span><span class="detail-val">'+p.mgmt_co+'</span></div>';
+    html += '<div class="detail-row"><span class="detail-key">電話</span><span class="detail-val">'+p.mgmt_tel+'</span></div>';
+    html += '<div class="detail-row"><span class="detail-key">房源</span><span class="detail-val">'+sourceTag(p.source)+'</span></div>';
+    html += '</div></div></div></div>';
+  }
+  list.innerHTML = html;
+}
+
+function toggle(id){
+  var card = document.getElementById('card-'+id);
+  card.classList.toggle('open');
+}
+
+render();
+</script>
+</body>
+</html>
