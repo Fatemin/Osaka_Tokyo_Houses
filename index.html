@@ -373,8 +373,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Noto Sans JP'
 
 <script>
 /* ===== GitHub Sync ===== */
-var GH_OWNER  = 'fatemin';
-var GH_REPO   = 'osaka_tokyo_houses';
+var GH_OWNER  = 'Fatemin';
+var GH_REPO   = 'Osaka_Tokyo_Houses';
 var GH_BRANCH = 'main';
 var GH_STATE  = 'data/osaka_state.json';
 var GH_PHOTOS = 'photos/osaka';
@@ -436,18 +436,25 @@ function scheduleSync(){
 async function doSync(){
   setSyncStatus('syncing');
   try{
-    var cleanPhotos={};
+    // Read current GH photosMap to avoid wiping photos not in local state
+    var ghPhotos={};
+    try{
+      var gr=await fetch(GH_RAW+GH_STATE+'?t='+Date.now(),{cache:'no-store'});
+      if(gr.ok){ var gd=await gr.json(); if(gd.photosMap) ghPhotos=gd.photosMap; }
+    }catch(e){}
+    // Merge: start from GH photos, overlay local raw-URL photos on top
+    var merged=JSON.parse(JSON.stringify(ghPhotos));
     Object.keys(photosMap).forEach(function(id){
       var ph=photosMap[id]; if(!ph) return;
-      var cleaned={};
       Object.keys(ph).forEach(function(type){
         if(!ph[type]) return;
         var urls=ph[type].filter(function(u){return u&&u.indexOf('data:')<0;});
-        if(urls.length) cleaned[type]=urls;
+        if(!urls.length) return;
+        if(!merged[id]) merged[id]={};
+        merged[id][type]=urls;
       });
-      if(Object.keys(cleaned).length) cleanPhotos[id]=cleaned;
     });
-    var state={props:props,statusMap:statusMap,photosMap:cleanPhotos};
+    var state={props:props,statusMap:statusMap,photosMap:merged};
     var b64=btoa(unescape(encodeURIComponent(JSON.stringify(state,null,2))));
     var ok=await ghPut(GH_STATE,b64,'Update state');
     setSyncStatus(ok?'ok':'error');
