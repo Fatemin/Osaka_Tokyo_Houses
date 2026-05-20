@@ -437,7 +437,27 @@ function scheduleSync(){
 async function doSync(){
   setSyncStatus('syncing');
   try{
-    var state={props:props,statusMap:statusMap,photosMap:photosMap};
+    var ghPhotos={};
+    try{
+      var gr=await ghAPI(GH_STATE);
+      if(gr.ok){
+        var gj=await gr.json();
+        var current=JSON.parse(decodeURIComponent(escape(atob(gj.content.replace(/\s/g,'')))));
+        if(current.photosMap) ghPhotos=current.photosMap;
+      }
+    }catch(e){}
+    var merged=JSON.parse(JSON.stringify(ghPhotos));
+    Object.keys(photosMap).forEach(function(id){
+      var ph=photosMap[id]; if(!ph) return;
+      Object.keys(ph).forEach(function(type){
+        if(!ph[type]) return;
+        var urls=ph[type].filter(function(u){return u&&u.indexOf('data:')<0;});
+        if(!urls.length) return;
+        if(!merged[id]) merged[id]={};
+        merged[id][type]=urls;
+      });
+    });
+    var state={props:props,statusMap:statusMap,photosMap:merged};
     var b64=btoa(unescape(encodeURIComponent(JSON.stringify(state,null,2))));
     var ok=await ghPut(GH_STATE,b64,'Update state');
     setSyncStatus(ok?'ok':'error');
@@ -445,11 +465,14 @@ async function doSync(){
 }
 
 async function loadFromGitHub(){
-  if(!hasToken()) return false;
   try{
-    var r=await fetch(GH_RAW+GH_STATE+'?t='+Date.now(),{cache:'no-store'});
+    var headers={'Accept':'application/vnd.github.v3+json'};
+    if(hasToken()) headers['Authorization']='token '+getToken();
+    var r=await fetch('https://api.github.com/repos/'+GH_OWNER+'/'+GH_REPO+'/contents/'+GH_STATE,
+      {headers:headers,cache:'no-store'});
     if(!r.ok) return false;
-    var data=await r.json();
+    var gj=await r.json();
+    var data=JSON.parse(decodeURIComponent(escape(atob(gj.content.replace(/\s/g,'')))));
     if(data.props) props=data.props;
     if(data.statusMap) statusMap=data.statusMap;
     if(data.photosMap) photosMap=data.photosMap;
