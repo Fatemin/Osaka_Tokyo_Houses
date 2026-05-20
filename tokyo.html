@@ -437,7 +437,18 @@ function scheduleSync(){
 async function doSync(){
   setSyncStatus('syncing');
   try{
-    var state={props:props,statusMap:statusMap,photosMap:photosMap};
+    var cleanPhotos={};
+    Object.keys(photosMap).forEach(function(id){
+      var ph=photosMap[id]; if(!ph) return;
+      var cleaned={};
+      Object.keys(ph).forEach(function(type){
+        if(!ph[type]) return;
+        var urls=ph[type].filter(function(u){return u&&u.indexOf('data:')<0;});
+        if(urls.length) cleaned[type]=urls;
+      });
+      if(Object.keys(cleaned).length) cleanPhotos[id]=cleaned;
+    });
+    var state={props:props,statusMap:statusMap,photosMap:cleanPhotos};
     var b64=btoa(unescape(encodeURIComponent(JSON.stringify(state,null,2))));
     var ok=await ghPut(GH_STATE,b64,'Update state');
     setSyncStatus(ok?'ok':'error');
@@ -809,6 +820,10 @@ function addPhotos(e, type){
   if(!activeId) return;
   var files=e.target.files;
   if(!files||!files.length) return;
+  if(!hasToken()){
+    alert('写真をアップロードするにはGitHubトークンが必要です。右上の ⚙ 設定 からトークンを設定してください。');
+    e.target.value=''; return;
+  }
   var id=activeId;
   var ph=photosMap[id]||(photosMap[id]={});
   var arr=ph[type]||(ph[type]=[]);
@@ -819,17 +834,12 @@ function addPhotos(e, type){
       var reader=new FileReader();
       reader.onload=function(ev){
         compressImage(ev.target.result,function(compressed){
-          if(hasToken()){
-            var fname=Date.now()+'_'+Math.random().toString(36).substr(2,5)+'.jpg';
-            var path=GH_PHOTOS+'/'+id+'/'+type+'/'+fname;
-            ghPut(path,compressed.split(',')[1],'Add photo').then(function(ok){
-              arr.push(ok?(GH_RAW+path):compressed);
-              done();
-            }).catch(function(){arr.push(compressed);done();});
-          } else {
-            arr.push(compressed);
-            done();
-          }
+          var fname=Date.now()+'_'+Math.random().toString(36).substr(2,5)+'.jpg';
+          var path=GH_PHOTOS+'/'+id+'/'+type+'/'+fname;
+          ghPut(path,compressed.split(',')[1],'Add photo').then(function(ok){
+            if(ok){ arr.push(GH_RAW+path); done(); }
+            else{ alert('写真のアップロードに失敗しました。トークンの権限を確認してください。'); done(); }
+          }).catch(function(err){ alert('写真アップロードエラー: '+err.message); done(); });
         });
       };
       reader.readAsDataURL(file);
