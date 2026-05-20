@@ -240,6 +240,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Noto Sans JP'
       <div class="detail-header-sub" id="dp-sub">—</div>
     </div>
     <div class="detail-header-actions">
+      <button class="btn btn-sm btn-danger" id="dp-delete-btn">削除</button>
       <button class="btn btn-sm" id="dp-edit-btn">編集</button>
       <button class="detail-close" onclick="closeDetail()">×</button>
     </div>
@@ -531,6 +532,7 @@ function openDetail(id){
   document.getElementById('dp-title').textContent=p.name;
   document.getElementById('dp-sub').textContent=p.room+' · '+p.madori+' · '+p.area;
   document.getElementById('dp-edit-btn').onclick=function(){openEdit(id);};
+  document.getElementById('dp-delete-btn').onclick=function(){deleteRecord(id);};
 
   renderPhotoGrid(id,'exterior');
   renderPhotoGrid(id,'interior');
@@ -756,6 +758,18 @@ function saveEdit(){
   saveData(); closeModal();
   if(activeId===editingId) openDetail(editingId);
   else render();
+}
+
+function deleteRecord(id){
+  var p=null;
+  for(var i=0;i<props.length;i++) if(props[i].id===id){p=props[i];break;}
+  if(!p) return;
+  if(!confirm('「'+p.name+'」を削除しますか？\nこの操作は取り消せません。')) return;
+  props=props.filter(function(pr){return pr.id!==id;});
+  delete statusMap[id];
+  delete photosMap[id];
+  saveData();
+  closeDetail();
 }
 
 loadData();
