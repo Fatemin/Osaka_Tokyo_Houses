@@ -35,18 +35,19 @@
 body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg3);color:var(--text);min-height:100vh;}
 
 /* ===== LAYOUT ===== */
-.app{display:grid;grid-template-columns:var(--sidebar) 1fr;grid-template-rows:auto auto 1fr;min-height:100vh;}
-.navbar{grid-column:1/-1;background:var(--bg2);border-bottom:0.5px solid var(--border);padding:0 1.5rem;display:flex;align-items:center;gap:4px;height:34px;position:sticky;top:0;z-index:51;}
+.sticky-header{position:sticky;top:0;z-index:51;}
+.navbar{background:var(--bg2);border-bottom:0.5px solid var(--border);padding:0 1.5rem;display:flex;align-items:center;gap:4px;height:34px;}
 .nav-link{font-size:12px;padding:4px 10px;border-radius:var(--radius-sm);color:var(--text2);text-decoration:none;white-space:nowrap;}
 .nav-link:hover{background:var(--bg3);color:var(--text)}
 .nav-link.active{background:var(--bg);color:var(--text);font-weight:500;border:0.5px solid var(--border2)}
 .nav-sep{font-size:12px;color:var(--text3)}
-.topbar{grid-column:1/-1;background:var(--bg);border-bottom:0.5px solid var(--border);padding:0.75rem 1.5rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;position:sticky;top:34px;z-index:50;}
+.topbar{background:var(--bg);border-bottom:0.5px solid var(--border);padding:0.75rem 1.5rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;}
 .topbar-left h1{font-size:15px;font-weight:500;color:var(--text)}
 .topbar-left p{font-size:12px;color:var(--text3);margin-top:2px}
 .topbar-right{display:flex;gap:6px;align-items:center;flex-shrink:0}
+.app{display:grid;grid-template-columns:var(--sidebar) 1fr;}
 .sidebar{background:var(--bg);border-right:0.5px solid var(--border);padding:1rem;overflow-y:auto;height:calc(100vh - 87px);position:sticky;top:87px;}
-.main{padding:1.25rem;overflow-y:auto;}
+.main{padding:1.25rem;}
 
 /* ===== STATS ===== */
 .stats{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:1rem;}
@@ -175,15 +176,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Noto Sans JP'
 </style>
 </head>
 <body>
-<div class="app">
-  <!-- NAVBAR -->
+<div class="sticky-header">
   <nav class="navbar">
     <a class="nav-link active" href="index.html">大阪·YMCA</a>
     <span class="nav-sep">/</span>
     <a class="nav-link" href="tokyo.html">東京·赤門会</a>
   </nav>
-
-  <!-- TOPBAR -->
   <div class="topbar">
     <div class="topbar-left">
       <h1>大阪YMCA学院 — 附近房源一览<span class="saved-dot" id="saved-dot"></span></h1>
@@ -194,7 +192,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Noto Sans JP'
       <button class="btn btn-danger" onclick="resetData()">リセット</button>
     </div>
   </div>
-
+</div>
+<div class="app">
   <!-- SIDEBAR -->
   <div class="sidebar">
     <div class="stats">
