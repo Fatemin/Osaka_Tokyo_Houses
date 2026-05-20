@@ -381,6 +381,7 @@ var GH_OWNER  = 'Fatemin';
 var GH_REPO   = 'Osaka_Tokyo_Houses';
 var GH_BRANCH = 'main';
 var GH_STATE  = 'data/osaka_state.json';
+var GH_PHOTOS_STATE = 'data/osaka_photos.json';
 var GH_PHOTOS = 'photos/osaka';
 var GH_RAW    = 'https://raw.githubusercontent.com/'+GH_OWNER+'/'+GH_REPO+'/'+GH_BRANCH+'/';
 var GH_TOKEN_KEY = 'gh_pat';
@@ -440,45 +441,39 @@ function scheduleSync(){
 async function doSync(){
   setSyncStatus('syncing');
   try{
-    var ghPhotos={};
-    try{
-      var gr=await ghAPI(GH_STATE);
-      if(gr.ok){
-        var gj=await gr.json();
-        var current=JSON.parse(decodeURIComponent(escape(atob(gj.content.replace(/\s/g,'')))));
-        if(current.photosMap) ghPhotos=current.photosMap;
-      }
-    }catch(e){}
-    var merged=JSON.parse(JSON.stringify(ghPhotos));
-    Object.keys(photosMap).forEach(function(id){
-      var ph=photosMap[id]; if(!ph) return;
-      Object.keys(ph).forEach(function(type){
-        if(!ph[type]) return;
-        var urls=ph[type].filter(function(u){return u&&u.indexOf('data:')<0;});
-        if(!urls.length) return;
-        if(!merged[id]) merged[id]={};
-        merged[id][type]=urls;
-      });
-    });
-    var state={props:props,statusMap:statusMap,photosMap:merged};
+    var state={props:props,statusMap:statusMap};
     var b64=btoa(unescape(encodeURIComponent(JSON.stringify(state,null,2))));
     var ok=await ghPut(GH_STATE,b64,'Update state');
     setSyncStatus(ok?'ok':'error');
   }catch(e){setSyncStatus('error',e.message);}
 }
 
+async function syncPhotosFile(){
+  if(!hasToken()) return;
+  try{
+    var b64=btoa(unescape(encodeURIComponent(JSON.stringify(photosMap,null,2))));
+    await ghPut(GH_PHOTOS_STATE,b64,'Update photos');
+  }catch(e){}
+}
+
 async function loadFromGitHub(){
   try{
     var headers={'Accept':'application/vnd.github.v3+json'};
     if(hasToken()) headers['Authorization']='token '+getToken();
-    var r=await fetch('https://api.github.com/repos/'+GH_OWNER+'/'+GH_REPO+'/contents/'+GH_STATE,
-      {headers:headers,cache:'no-store'});
+    var base='https://api.github.com/repos/'+GH_OWNER+'/'+GH_REPO+'/contents/';
+    var r=await fetch(base+GH_STATE,{headers:headers,cache:'no-store'});
     if(!r.ok) return false;
     var gj=await r.json();
     var data=JSON.parse(decodeURIComponent(escape(atob(gj.content.replace(/\s/g,'')))));
     if(data.props) props=data.props;
     if(data.statusMap) statusMap=data.statusMap;
-    if(data.photosMap) photosMap=data.photosMap;
+    try{
+      var rp=await fetch(base+GH_PHOTOS_STATE,{headers:headers,cache:'no-store'});
+      if(rp.ok){
+        var pj=await rp.json();
+        photosMap=JSON.parse(decodeURIComponent(escape(atob(pj.content.replace(/\s/g,'')))));
+      }
+    }catch(e){}
     return true;
   }catch(e){return false;}
 }
@@ -880,7 +875,7 @@ function addPhotos(e, type){
   var ph=photosMap[id]||(photosMap[id]={});
   var arr=ph[type]||(ph[type]=[]);
   var remaining=files.length;
-  function done(){ remaining--; if(remaining===0){saveData();renderPhotoGrid(id,type);render();} }
+  function done(){ remaining--; if(remaining===0){syncPhotosFile();saveData();renderPhotoGrid(id,type);render();} }
   for(var i=0;i<files.length;i++){
     (function(file){
       var reader=new FileReader();
@@ -907,6 +902,7 @@ function deletePhoto(e, id, type, idx){
   if(!ph||!ph[type]) return;
   var url=ph[type][idx];
   ph[type].splice(idx,1);
+  syncPhotosFile();
   saveData();
   renderPhotoGrid(id,type);
   render();
@@ -1029,6 +1025,7 @@ function deleteRecord(id){
   props=props.filter(function(pr){return pr.id!==id;});
   delete statusMap[id];
   delete photosMap[id];
+  syncPhotosFile();
   saveData();
   closeDetail();
 }
