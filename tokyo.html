@@ -147,6 +147,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Noto Sans JP'
 .btn-primary:hover{opacity:0.85}
 .saved-dot{width:6px;height:6px;border-radius:50%;background:#3B6D11;display:inline-block;margin-left:6px;opacity:0;transition:opacity 0.3s;vertical-align:middle}
 .saved-dot.show{opacity:1}
+.sync-badge{font-size:10px;padding:2px 7px;border-radius:99px;margin-left:8px;vertical-align:middle;display:none}
+.sync-badge.syncing{display:inline;background:var(--amber-bg);color:var(--amber-text)}
+.sync-badge.ok{display:inline;background:var(--green-bg);color:var(--green-text)}
+.sync-badge.error{display:inline;background:var(--red-bg);color:var(--red-text)}
 .no-results{text-align:center;padding:3rem;color:var(--text2);font-size:14px}
 
 /* edit modal */
@@ -184,10 +188,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Noto Sans JP'
   </nav>
   <div class="topbar">
     <div class="topbar-left">
-      <h1>東京赤門会日本語学校 — 附近房源一览<span class="saved-dot" id="saved-dot"></span></h1>
+      <h1>東京赤門会日本語学校 — 附近房源一览<span class="saved-dot" id="saved-dot"></span><span class="sync-badge" id="sync-badge"></span></h1>
       <p>東京都文京区　最寄り：本郷三丁目駅・湯島駅</p>
     </div>
     <div class="topbar-right">
+      <button class="btn btn-sm" onclick="openSettings()" title="GitHub同期設定">⚙ 設定</button>
       <button class="btn btn-primary" onclick="openNew()">+ 新規追加</button>
       <button class="btn" onclick="exportData()">エクスポート</button>
       <button class="btn btn-danger" onclick="resetData()">リセット</button>
@@ -284,6 +289,28 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Noto Sans JP'
   </div>
 </div>
 
+<!-- SETTINGS MODAL -->
+<div class="modal-overlay" id="settings-overlay" onclick="closeSettingsOutside(event)">
+  <div class="modal" style="max-width:440px">
+    <h2>GitHub 同期設定</h2>
+    <div class="field-group" style="margin-bottom:0.75rem">
+      <label>Fine-grained Personal Access Token</label>
+      <input id="s-token" type="password" placeholder="github_pat_...">
+    </div>
+    <p style="font-size:11px;color:var(--text3);line-height:1.7;margin-bottom:1rem">
+      GitHub → Settings → Developer settings → Fine-grained personal access tokens → Generate new token<br>
+      Repository access: <strong>fatemin/osaka_tokyo_houses</strong> のみ<br>
+      Permissions: <strong>Contents → Read and Write</strong> のみ
+    </p>
+    <div id="s-status" style="font-size:12px;min-height:18px;margin-bottom:0.75rem"></div>
+    <div class="modal-footer">
+      <button class="btn btn-sm btn-danger" onclick="clearGHToken()">トークン削除</button>
+      <button class="btn btn-sm" onclick="closeSettings()">キャンセル</button>
+      <button class="btn btn-sm btn-primary" onclick="saveGHToken()">保存・接続確認</button>
+    </div>
+  </div>
+</div>
+
 <!-- LIGHTBOX -->
 <div class="lightbox" id="lightbox" onclick="closeLightbox()">
   <button class="lightbox-close" onclick="closeLightbox()">×</button>
@@ -346,6 +373,130 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Noto Sans JP'
 </div>
 
 <script>
+/* ===== GitHub Sync ===== */
+var GH_OWNER  = 'fatemin';
+var GH_REPO   = 'osaka_tokyo_houses';
+var GH_BRANCH = 'main';
+var GH_STATE  = 'data/tokyo_state.json';
+var GH_PHOTOS = 'photos/tokyo';
+var GH_RAW    = 'https://raw.githubusercontent.com/'+GH_OWNER+'/'+GH_REPO+'/'+GH_BRANCH+'/';
+var GH_TOKEN_KEY = 'gh_pat';
+
+function getToken(){ return localStorage.getItem(GH_TOKEN_KEY)||''; }
+function hasToken(){ return !!getToken(); }
+
+function setSyncStatus(s,msg){
+  var el=document.getElementById('sync-badge');
+  if(!el) return;
+  el.className='sync-badge'+(s?' '+s:'');
+  el.textContent=s==='syncing'?'同期中…':s==='ok'?'同期済':s==='error'?'同期失敗':'';
+  if(msg) el.title=msg;
+  if(s==='ok') setTimeout(function(){el.className='sync-badge';},3000);
+}
+
+async function ghAPI(path,method,body){
+  var opts={method:method||'GET',headers:{
+    'Authorization':'token '+getToken(),
+    'Accept':'application/vnd.github.v3+json'
+  }};
+  if(body){opts.headers['Content-Type']='application/json';opts.body=JSON.stringify(body);}
+  return fetch('https://api.github.com/repos/'+GH_OWNER+'/'+GH_REPO+'/contents/'+path,opts);
+}
+
+async function ghSHA(path){
+  try{
+    var r=await ghAPI(path);
+    if(r.status===404) return null;
+    if(!r.ok) return null;
+    return (await r.json()).sha;
+  }catch(e){return null;}
+}
+
+async function ghPut(path,b64,msg){
+  var sha=await ghSHA(path);
+  var body={message:msg,content:b64,branch:GH_BRANCH};
+  if(sha) body.sha=sha;
+  var r=await ghAPI(path,'PUT',body);
+  return r.ok;
+}
+
+async function ghDel(path,msg){
+  var sha=await ghSHA(path);
+  if(!sha) return true;
+  var r=await ghAPI(path,'DELETE',{message:msg,sha:sha,branch:GH_BRANCH});
+  return r.ok;
+}
+
+var _syncTimer=null;
+function scheduleSync(){
+  if(!hasToken()) return;
+  clearTimeout(_syncTimer);
+  _syncTimer=setTimeout(doSync,1500);
+}
+
+async function doSync(){
+  setSyncStatus('syncing');
+  try{
+    var state={props:props,statusMap:statusMap,photosMap:photosMap};
+    var b64=btoa(unescape(encodeURIComponent(JSON.stringify(state,null,2))));
+    var ok=await ghPut(GH_STATE,b64,'Update state');
+    setSyncStatus(ok?'ok':'error');
+  }catch(e){setSyncStatus('error',e.message);}
+}
+
+async function loadFromGitHub(){
+  if(!hasToken()) return false;
+  try{
+    var r=await fetch(GH_RAW+GH_STATE+'?t='+Date.now(),{cache:'no-store'});
+    if(!r.ok) return false;
+    var data=await r.json();
+    if(data.props) props=data.props;
+    if(data.statusMap) statusMap=data.statusMap;
+    if(data.photosMap) photosMap=data.photosMap;
+    return true;
+  }catch(e){return false;}
+}
+
+/* ===== Settings Modal ===== */
+function openSettings(){
+  document.getElementById('s-token').value=getToken();
+  document.getElementById('s-status').textContent='';
+  document.getElementById('settings-overlay').classList.add('open');
+}
+function closeSettings(){
+  document.getElementById('settings-overlay').classList.remove('open');
+}
+function closeSettingsOutside(e){
+  if(e.target===document.getElementById('settings-overlay')) closeSettings();
+}
+async function saveGHToken(){
+  var token=document.getElementById('s-token').value.trim();
+  if(!token){alert('トークンを入力してください');return;}
+  localStorage.setItem(GH_TOKEN_KEY,token);
+  var st=document.getElementById('s-status');
+  st.textContent='接続確認中...';
+  try{
+    var r=await fetch('https://api.github.com/repos/'+GH_OWNER+'/'+GH_REPO,{
+      headers:{'Authorization':'token '+token}
+    });
+    if(r.ok){
+      st.textContent='✓ 接続成功。データを同期しています...';
+      await doSync();
+      st.textContent='✓ 同期完了';
+      setTimeout(closeSettings,800);
+    } else {
+      st.textContent='✗ 接続失敗 ('+r.status+')。トークンと権限を確認してください';
+    }
+  }catch(e){st.textContent='✗ ネットワークエラー: '+e.message;}
+}
+function clearGHToken(){
+  if(!confirm('トークンを削除しますか？GitHub同期が無効になります')) return;
+  localStorage.removeItem(GH_TOKEN_KEY);
+  document.getElementById('s-token').value='';
+  document.getElementById('s-status').textContent='トークンを削除しました';
+}
+
+/* ===== Storage Keys ===== */
 var STORAGE_KEY = 'tokyo_akamon_props_v1';
 var STATUS_KEY  = 'tokyo_akamon_status_v1';
 var PHOTOS_KEY  = 'tokyo_akamon_photos_v1';
@@ -372,18 +523,20 @@ defaultStatus[1] = 'unconfirmed';
 
 var props, statusMap, photosMap;
 
-function loadData(){
-  try{
-    var sp=localStorage.getItem(STORAGE_KEY);
-    var ss=localStorage.getItem(STATUS_KEY);
-    var sph=localStorage.getItem(PHOTOS_KEY);
-    props = sp ? JSON.parse(sp) : JSON.parse(JSON.stringify(defaultProps));
-    statusMap = ss ? JSON.parse(ss) : JSON.parse(JSON.stringify(defaultStatus));
-    photosMap = sph ? JSON.parse(sph) : {};
-  }catch(e){
-    props=JSON.parse(JSON.stringify(defaultProps));
-    statusMap=JSON.parse(JSON.stringify(defaultStatus));
-    photosMap={};
+async function loadData(){
+  props=JSON.parse(JSON.stringify(defaultProps));
+  statusMap=JSON.parse(JSON.stringify(defaultStatus));
+  photosMap={};
+  var fromGH=await loadFromGitHub();
+  if(!fromGH){
+    try{
+      var sp=localStorage.getItem(STORAGE_KEY);
+      var ss=localStorage.getItem(STATUS_KEY);
+      var sph=localStorage.getItem(PHOTOS_KEY);
+      if(sp) props=JSON.parse(sp);
+      if(ss) statusMap=JSON.parse(ss);
+      if(sph) photosMap=JSON.parse(sph);
+    }catch(e){}
   }
 }
 
@@ -392,10 +545,11 @@ function saveData(){
     localStorage.setItem(STORAGE_KEY,JSON.stringify(props));
     localStorage.setItem(STATUS_KEY,JSON.stringify(statusMap));
     localStorage.setItem(PHOTOS_KEY,JSON.stringify(photosMap));
-    var dot=document.getElementById('saved-dot');
-    dot.classList.add('show');
-    setTimeout(function(){dot.classList.remove('show');},1500);
-  }catch(e){ alert('保存エラー: ストレージ容量が不足している可能性があります'); }
+  }catch(e){}
+  var dot=document.getElementById('saved-dot');
+  dot.classList.add('show');
+  setTimeout(function(){dot.classList.remove('show');},1500);
+  scheduleSync();
 }
 
 function resetData(){
@@ -403,7 +557,11 @@ function resetData(){
   localStorage.removeItem(STORAGE_KEY);
   localStorage.removeItem(STATUS_KEY);
   localStorage.removeItem(PHOTOS_KEY);
-  loadData(); render(); closeDetail();
+  props=JSON.parse(JSON.stringify(defaultProps));
+  statusMap=JSON.parse(JSON.stringify(defaultStatus));
+  photosMap={};
+  render(); closeDetail();
+  scheduleSync();
 }
 
 function exportData(){
@@ -656,17 +814,22 @@ function addPhotos(e, type){
   var ph=photosMap[id]||(photosMap[id]={});
   var arr=ph[type]||(ph[type]=[]);
   var remaining=files.length;
+  function done(){ remaining--; if(remaining===0){saveData();renderPhotoGrid(id,type);render();} }
   for(var i=0;i<files.length;i++){
     (function(file){
       var reader=new FileReader();
       reader.onload=function(ev){
-        compressImage(ev.target.result, function(compressed){
-          arr.push(compressed);
-          remaining--;
-          if(remaining===0){
-            saveData();
-            renderPhotoGrid(id,type);
-            render();
+        compressImage(ev.target.result,function(compressed){
+          if(hasToken()){
+            var fname=Date.now()+'_'+Math.random().toString(36).substr(2,5)+'.jpg';
+            var path=GH_PHOTOS+'/'+id+'/'+type+'/'+fname;
+            ghPut(path,compressed.split(',')[1],'Add photo').then(function(ok){
+              arr.push(ok?(GH_RAW+path):compressed);
+              done();
+            }).catch(function(){arr.push(compressed);done();});
+          } else {
+            arr.push(compressed);
+            done();
           }
         });
       };
@@ -681,10 +844,15 @@ function deletePhoto(e, id, type, idx){
   if(!confirm('この写真を削除しますか？')) return;
   var ph=photosMap[id];
   if(!ph||!ph[type]) return;
+  var url=ph[type][idx];
   ph[type].splice(idx,1);
   saveData();
   renderPhotoGrid(id,type);
   render();
+  if(hasToken()&&url&&url.indexOf('raw.githubusercontent.com')>=0){
+    var path=url.replace(GH_RAW,'').split('?')[0];
+    ghDel(path,'Delete photo').catch(function(){});
+  }
 }
 
 function openLightbox(id,type,idx){
@@ -840,8 +1008,7 @@ function saveEdit(){
   }
 }
 
-loadData();
-render();
+loadData().then(function(){render();});
 </script>
 </body>
 </html>
