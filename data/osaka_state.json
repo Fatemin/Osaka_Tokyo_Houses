@@ -534,7 +534,7 @@
     }
   ],
   "statusMap": {
-    "1": "unconfirmed",
+    "1": "confirmed",
     "3": "confirmed",
     "6": "confirmed",
     "8": "unconfirmed",
