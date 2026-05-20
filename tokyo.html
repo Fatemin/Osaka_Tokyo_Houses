@@ -445,7 +445,6 @@ async function doSync(){
 }
 
 async function loadFromGitHub(){
-  if(!hasToken()) return false;
   try{
     var r=await fetch(GH_RAW+GH_STATE+'?t='+Date.now(),{cache:'no-store'});
     if(!r.ok) return false;
