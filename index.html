@@ -440,13 +440,15 @@ function scheduleSync(){
 async function doSync(){
   setSyncStatus('syncing');
   try{
-    // Read current GH photosMap to avoid wiping photos not in local state
     var ghPhotos={};
     try{
-      var gr=await fetch(GH_RAW+GH_STATE+'?t='+Date.now(),{cache:'no-store'});
-      if(gr.ok){ var gd=await gr.json(); if(gd.photosMap) ghPhotos=gd.photosMap; }
+      var gr=await ghAPI(GH_STATE);
+      if(gr.ok){
+        var gj=await gr.json();
+        var current=JSON.parse(decodeURIComponent(escape(atob(gj.content.replace(/\s/g,'')))));
+        if(current.photosMap) ghPhotos=current.photosMap;
+      }
     }catch(e){}
-    // Merge: start from GH photos, overlay local raw-URL photos on top
     var merged=JSON.parse(JSON.stringify(ghPhotos));
     Object.keys(photosMap).forEach(function(id){
       var ph=photosMap[id]; if(!ph) return;
@@ -467,9 +469,13 @@ async function doSync(){
 
 async function loadFromGitHub(){
   try{
-    var r=await fetch(GH_RAW+GH_STATE+'?t='+Date.now(),{cache:'no-store'});
+    var headers={'Accept':'application/vnd.github.v3+json'};
+    if(hasToken()) headers['Authorization']='token '+getToken();
+    var r=await fetch('https://api.github.com/repos/'+GH_OWNER+'/'+GH_REPO+'/contents/'+GH_STATE,
+      {headers:headers,cache:'no-store'});
     if(!r.ok) return false;
-    var data=await r.json();
+    var gj=await r.json();
+    var data=JSON.parse(decodeURIComponent(escape(atob(gj.content.replace(/\s/g,'')))));
     if(data.props) props=data.props;
     if(data.statusMap) statusMap=data.statusMap;
     if(data.photosMap) photosMap=data.photosMap;
