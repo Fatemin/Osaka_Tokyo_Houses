@@ -538,12 +538,26 @@ var defaultProps = [
    elevator:true, furniture:false, net:"無料",
    equip:["オートロック","防犯カメラ","宅配BOX","バス・トイレ別","独立洗面台","エアコン","室内洗濯機置き場","浴室乾燥機","温水洗浄便座","バルコニー","角部屋","最上階","ペット相談可","2人入居可"],
    guarantee:"あり(初回100%・月額1.5%)", foreign:"可",
-   key_fee:11000, other_fees:"ルームクリーニング59,400円 火災保険20,000円 24時間生活サポート19,800円 更新料1.5ヶ月 短期解約違約金あり(1年未満:賃料2ヶ月/1〜2年:賃料1ヶ月) 解約予告2ヶ月前"}
+   key_fee:11000, other_fees:"ルームクリーニング59,400円 火災保険20,000円 24時間生活サポート19,800円 更新料1.5ヶ月 短期解約違約金あり(1年未満:賃料2ヶ月/1〜2年:賃料1ヶ月) 解約予告2ヶ月前"},
+  {id:3, name:"東栄コーポ", room:"204", addr:"東京都荒川区西日暮里1丁目61-7", source:"ITANDI BB",
+   rent:115000, mgmt:5000, deposit:115000, key_money:"115,000円",
+   walk:0, bike:20,
+   train:"西日暮里駅(千代田線)→湯島駅(約5分)+徒歩7分 合計約17分",
+   nearest:"東京メトロ千代田線 西日暮里駅 徒歩5分 / JR山手線 日暮里駅 徒歩10分",
+   mgmt_co:"記載なし", mgmt_tel:"記載なし", link:null,
+   madori:"1LDK", area:"38㎡",
+   avail:"相談", floor:"2階/7階建", built:"1989年1月(築37年)",
+   struct:"鉄骨鉄筋コンクリート",
+   elevator:true, furniture:false, net:"記載なし",
+   equip:["防犯カメラ","バス・トイレ別","独立洗面台","バルコニー","角部屋"],
+   guarantee:"あり(初回100%・月額1.5%)", foreign:"可(ベトナム・ミャンマー・ネパール国籍不可)",
+   key_fee:33000, other_fees:"契約事務手数料11,000円 火災保険20,000円 24時間生活サポート19,800円 更新料1ヶ月 解約予告1ヶ月前"}
 ];
 
 var defaultStatus = {};
 defaultStatus[1] = 'unconfirmed';
 defaultStatus[2] = 'unconfirmed';
+defaultStatus[3] = 'unconfirmed';
 
 var props, statusMap, photosMap;
 
