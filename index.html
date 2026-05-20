@@ -302,6 +302,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Noto Sans JP'
       Permissions: <strong>Contents → Read and Write</strong> のみ
     </p>
     <div id="s-status" style="font-size:12px;min-height:18px;margin-bottom:0.75rem"></div>
+    <div style="border-top:0.5px solid var(--border);padding-top:0.75rem;margin-bottom:0.75rem">
+      <p style="font-size:11px;color:var(--text3);margin-bottom:0.5rem">このデバイスのlocalStorageに保存された写真をGitHubへ移行します（トークン必須）</p>
+      <button class="btn btn-sm" onclick="recoverPhotos()" style="width:100%">📤 このデバイスの写真をGitHubへ復元アップロード</button>
+    </div>
     <div class="modal-footer">
       <button class="btn btn-sm btn-danger" onclick="clearGHToken()">トークン削除</button>
       <button class="btn btn-sm" onclick="closeSettings()">キャンセル</button>
@@ -510,6 +514,45 @@ function clearGHToken(){
   localStorage.removeItem(GH_TOKEN_KEY);
   document.getElementById('s-token').value='';
   document.getElementById('s-status').textContent='トークンを削除しました';
+}
+
+async function recoverPhotos(){
+  if(!hasToken()){ alert('先にトークンを保存してください'); return; }
+  var st=document.getElementById('s-status');
+  var raw=localStorage.getItem(PHOTOS_KEY);
+  if(!raw){ st.textContent='このデバイスに保存された写真データが見つかりません'; return; }
+  var local;
+  try{ local=JSON.parse(raw); }catch(e){ st.textContent='写真データの読み込みに失敗しました'; return; }
+  var ids=Object.keys(local);
+  if(!ids.length){ st.textContent='ローカルに写真データが存在しません'; return; }
+  var total=0,done=0,failed=0;
+  ids.forEach(function(id){ Object.keys(local[id]||{}).forEach(function(type){ (local[id][type]||[]).forEach(function(u){ if(u&&u.indexOf('data:')===0) total++; }); }); });
+  if(!total){ st.textContent='アップロード可能な写真がありません（すでにGitHubに保存済みの可能性）'; return; }
+  st.textContent='0/'+total+' アップロード中...';
+  for(var i=0;i<ids.length;i++){
+    var id=ids[i];
+    var ph=local[id]||{};
+    var types=Object.keys(ph);
+    if(!photosMap[id]) photosMap[id]={};
+    for(var j=0;j<types.length;j++){
+      var type=types[j];
+      var arr=ph[type]||[];
+      if(!photosMap[id][type]) photosMap[id][type]=[];
+      for(var k=0;k<arr.length;k++){
+        var u=arr[k];
+        if(!u||u.indexOf('data:')<0) continue;
+        var fname=Date.now()+'_'+Math.random().toString(36).substr(2,5)+'.jpg';
+        var path=GH_PHOTOS+'/'+id+'/'+type+'/'+fname;
+        var b64=u.split(',')[1];
+        var ok=await ghPut(path,b64,'Recover photo');
+        if(ok){ photosMap[id][type].push(GH_RAW+path); done++; }
+        else { failed++; }
+        st.textContent=done+'/'+(done+failed)+'/'+total+' アップロード中...';
+      }
+    }
+  }
+  saveData();
+  st.textContent='完了: '+done+'件成功'+(failed?'、'+failed+'件失敗':'');
 }
 
 /* ===== Storage Keys ===== */
