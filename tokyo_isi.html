@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>東京赤門会日本語学校 — 附近房源一览</title>
+<title>東京ISI言語学校 — 附近房源一览</title>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -184,14 +184,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Noto Sans JP'
   <nav class="navbar">
     <a class="nav-link" href="index.html">大阪·YMCA</a>
     <span class="nav-sep">/</span>
-    <a class="nav-link active" href="tokyo.html">東京·赤門会</a>
+    <a class="nav-link" href="tokyo.html">東京·赤門会</a>
     <span class="nav-sep">/</span>
-    <a class="nav-link" href="tokyo_isi.html">東京·ISI</a>
+    <a class="nav-link active" href="tokyo_isi.html">東京·ISI</a>
   </nav>
   <div class="topbar">
     <div class="topbar-left">
-      <h1>東京赤門会日本語学校 — 附近房源一览<span class="saved-dot" id="saved-dot"></span><span class="sync-badge" id="sync-badge"></span></h1>
-      <p>東京都文京区　最寄り：本郷三丁目駅・湯島駅</p>
+      <h1>東京ISI言語学校 — 附近房源一览<span class="saved-dot" id="saved-dot"></span><span class="sync-badge" id="sync-badge"></span></h1>
+      <p>東京都新宿区　最寄り：新宿駅</p>
     </div>
     <div class="topbar-right">
       <button class="btn btn-sm" onclick="openSettings()" title="GitHub同期設定">⚙ 設定</button>
@@ -379,9 +379,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Noto Sans JP'
 var GH_OWNER  = 'Fatemin';
 var GH_REPO   = 'Osaka_Tokyo_Houses';
 var GH_BRANCH = 'main';
-var GH_STATE  = 'data/tokyo_state.json';
-var GH_PHOTOS_STATE = 'data/tokyo_photos.json';
-var GH_PHOTOS = 'photos/tokyo';
+var GH_STATE  = 'data/tokyo_isi_state.json';
+var GH_PHOTOS_STATE = 'data/tokyo_isi_photos.json';
+var GH_PHOTOS = 'photos/tokyo_isi';
 var GH_RAW    = 'https://raw.githubusercontent.com/'+GH_OWNER+'/'+GH_REPO+'/'+GH_BRANCH+'/';
 var GH_TOKEN_KEY = 'gh_pat';
 
@@ -517,57 +517,13 @@ function clearGHToken(){
 }
 
 /* ===== Storage Keys ===== */
-var STORAGE_KEY = 'tokyo_akamon_props_v1';
-var STATUS_KEY  = 'tokyo_akamon_status_v1';
-var PHOTOS_KEY  = 'tokyo_akamon_photos_v1';
+var STORAGE_KEY = 'tokyo_isi_props_v1';
+var STATUS_KEY  = 'tokyo_isi_status_v1';
+var PHOTOS_KEY  = 'tokyo_isi_photos_v1';
 
-var defaultProps = [
-  {id:1, name:"J・Kビル", room:"201", addr:"東京都荒川区西日暮里2丁目15-7", source:"ITANDI BB",
-   rent:85000, mgmt:15000, deposit:0, key_money:"なし",
-   walk:0, bike:0,
-   train:"日暮里駅→要確認 合計約要確認分",
-   nearest:"JR山手線 日暮里駅 徒歩3分",
-   mgmt_co:"記載なし", mgmt_tel:"記載なし",
-   link:null,
-   madori:"1R", area:"18.23㎡",
-   avail:"相談", floor:"2階/5階建", built:"1985年9月(築40年)",
-   struct:"鉄筋コンクリート",
-   elevator:false, furniture:false, net:"記載なし",
-   equip:["バス・トイレ別","室内洗濯機置き場","フローリング","バルコニー","角部屋","温水洗浄便座","追焚機能"],
-   guarantee:"あり(初回保証料50%～・月額継続保証料800円)", foreign:"可(海外審査不可)",
-   key_fee:27500, other_fees:"室内清掃49,500円 エアコンクリーニング13,200円 火災保険2,480円/月 更新継続保証料800円/月 更新事務手数料27,500円(更新時)"},
-  {id:2, name:"アルテシモリンククロス", room:"1202", addr:"東京都荒川区西日暮里2丁目47-5", source:"ITANDI BB",
-   rent:110000, mgmt:10000, deposit:0, key_money:"110,000円",
-   walk:0, bike:20,
-   train:"西日暮里駅(千代田線)→湯島駅(約5分)+徒歩7分 合計約15分",
-   nearest:"日暮里・舎人ライナー 西日暮里駅 徒歩3分 / JR山手線 日暮里駅 徒歩6分",
-   mgmt_co:"記載なし", mgmt_tel:"記載なし", link:null,
-   madori:"1R", area:"25.23㎡",
-   avail:"相談", floor:"12階/12階建", built:"2009年2月(築17年)",
-   struct:"鉄筋コンクリート",
-   elevator:true, furniture:false, net:"無料",
-   equip:["オートロック","防犯カメラ","宅配BOX","バス・トイレ別","独立洗面台","エアコン","室内洗濯機置き場","浴室乾燥機","温水洗浄便座","バルコニー","角部屋","最上階","ペット相談可","2人入居可"],
-   guarantee:"あり(初回100%・月額1.5%)", foreign:"可",
-   key_fee:11000, other_fees:"ルームクリーニング59,400円 火災保険20,000円 24時間生活サポート19,800円 更新料1.5ヶ月 短期解約違約金あり(1年未満:賃料2ヶ月/1〜2年:賃料1ヶ月) 解約予告2ヶ月前"},
-  {id:3, name:"東栄コーポ", room:"204", addr:"東京都荒川区西日暮里1丁目61-7", source:"ITANDI BB",
-   rent:115000, mgmt:5000, deposit:115000, key_money:"115,000円",
-   walk:0, bike:20,
-   train:"西日暮里駅(千代田線)→湯島駅(約5分)+徒歩7分 合計約17分",
-   nearest:"東京メトロ千代田線 西日暮里駅 徒歩5分 / JR山手線 日暮里駅 徒歩10分",
-   mgmt_co:"記載なし", mgmt_tel:"記載なし", link:null,
-   madori:"1LDK", area:"38㎡",
-   avail:"相談", floor:"2階/7階建", built:"1989年1月(築37年)",
-   struct:"鉄骨鉄筋コンクリート",
-   elevator:true, furniture:false, net:"記載なし",
-   equip:["防犯カメラ","バス・トイレ別","独立洗面台","バルコニー","角部屋"],
-   guarantee:"あり(初回100%・月額1.5%)", foreign:"可(ベトナム・ミャンマー・ネパール国籍不可)",
-   key_fee:33000, other_fees:"契約事務手数料11,000円 火災保険20,000円 24時間生活サポート19,800円 更新料1ヶ月 解約予告1ヶ月前"}
-];
+var defaultProps = [];
 
 var defaultStatus = {};
-defaultStatus[1] = 'unconfirmed';
-defaultStatus[2] = 'unconfirmed';
-defaultStatus[3] = 'unconfirmed';
 
 var props, statusMap, photosMap;
 
@@ -615,7 +571,7 @@ function resetData(){
 function exportData(){
   var blob=new Blob([JSON.stringify({props:props,statusMap:statusMap},null,2)],{type:'application/json'});
   var a=document.createElement('a'); a.href=URL.createObjectURL(blob);
-  a.download='tokyo_akamon_data.json'; a.click();
+  a.download='tokyo_isi_data.json'; a.click();
 }
 
 function fmt(n){ return n ? '\xA5'+Number(n).toLocaleString() : '—'; }
