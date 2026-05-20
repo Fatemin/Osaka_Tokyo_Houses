@@ -130,33 +130,5 @@
     "1": "confirmed",
     "2": "unconfirmed",
     "3": "unconfirmed"
-  },
-  "photosMap": {
-    "1": {
-      "exterior": [
-        "https://raw.githubusercontent.com/Fatemin/Osaka_Tokyo_Houses/main/photos/tokyo/1/exterior/1779265156830_a0xmv.jpg"
-      ],
-      "interior": [
-        "https://raw.githubusercontent.com/Fatemin/Osaka_Tokyo_Houses/main/photos/tokyo/1/interior/1779266421349_v405i.jpg",
-        "https://raw.githubusercontent.com/Fatemin/Osaka_Tokyo_Houses/main/photos/tokyo/1/interior/1779266476803_np7vt.jpg",
-        "https://raw.githubusercontent.com/Fatemin/Osaka_Tokyo_Houses/main/photos/tokyo/1/interior/1779267320928_7k2rk.jpg"
-      ]
-    },
-    "2": {
-      "exterior": [
-        "https://raw.githubusercontent.com/fatemin/osaka_tokyo_houses/main/photos/tokyo/2/exterior/1779265924924_1niqd.jpg"
-      ],
-      "interior": [
-        "https://raw.githubusercontent.com/fatemin/osaka_tokyo_houses/main/photos/tokyo/2/interior/1779265934882_ei4zq.jpg"
-      ]
-    },
-    "3": {
-      "exterior": [
-        "https://raw.githubusercontent.com/Fatemin/Osaka_Tokyo_Houses/main/photos/tokyo/3/exterior/1779267379043_f1vbe.jpg"
-      ],
-      "interior": [
-        "https://raw.githubusercontent.com/Fatemin/Osaka_Tokyo_Houses/main/photos/tokyo/3/interior/1779267384410_95ur3.jpg"
-      ]
-    }
   }
 }
