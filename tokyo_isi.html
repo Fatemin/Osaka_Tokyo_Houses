@@ -95,7 +95,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Noto Sans JP'
 .tag-caution{background:var(--red-bg);color:var(--red-text);cursor:pointer}
 
 /* ===== DETAIL PANEL ===== */
-.detail-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.25);z-index:40;}
+.detail-overlay{display:none;position:fixed;top:87px;left:0;right:0;bottom:0;background:rgba(0,0,0,0.25);z-index:40;}
 .detail-overlay.open{display:block}
 .detail-panel{position:fixed;top:87px;right:0;bottom:0;width:min(560px,100vw);background:var(--bg);border-left:0.5px solid var(--border);overflow-y:auto;z-index:45;transform:translateX(100%);transition:transform 0.22s cubic-bezier(.4,0,.2,1);}
 .detail-panel.open{transform:translateX(0)}
@@ -212,25 +212,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Noto Sans JP'
     </div>
 
     <div class="filter-section">
-      <div class="filter-section-title">房源</div>
-      <div class="filter-pills">
-        <button class="filter-btn active" onclick="setFilter('all',this)">すべて</button>
-        <button class="filter-btn" onclick="setFilter('自社',this)">自社</button>
-        <button class="filter-btn" onclick="setFilter('ITANDI BB',this)">ITANDI BB</button>
-        <button class="filter-btn" onclick="setFilter('いい生活',this)">いい生活</button>
-      </div>
-    </div>
-    <div class="filter-section">
-      <div class="filter-section-title">通勤時間</div>
-      <div class="filter-pills">
-        <button class="filter-btn" onclick="setFilter('walk5',this)">徒歩5分以内</button>
-        <button class="filter-btn" onclick="setFilter('walk10',this)">徒歩10分以内</button>
-      </div>
-    </div>
-    <div class="filter-section">
       <div class="filter-section-title">家賃</div>
       <div class="filter-pills">
+        <button class="filter-btn active" onclick="setFilter('all',this)">すべて</button>
         <button class="filter-btn" onclick="setFilter('under7',this)">7万円以下</button>
+        <button class="filter-btn" onclick="setFilter('under9',this)">9万円以下</button>
+        <button class="filter-btn" onclick="setFilter('under10',this)">10万円以下</button>
       </div>
     </div>
     <div class="filter-section">
@@ -652,12 +639,9 @@ function filtered(){
   return props.filter(function(p){
     var s=statusMap[p.id]||'unconfirmed';
     if(currentFilter==='all') return true;
-    if(currentFilter==='自社') return p.source==='自社';
-    if(currentFilter==='ITANDI BB') return p.source==='ITANDI BB';
-    if(currentFilter==='いい生活') return p.source==='いい生活';
-    if(currentFilter==='walk5') return p.walk<=5;
-    if(currentFilter==='walk10') return p.walk<=10;
     if(currentFilter==='under7') return p.rent<=70000;
+    if(currentFilter==='under9') return p.rent<=90000;
+    if(currentFilter==='under10') return p.rent<=100000;
     if(currentFilter==='confirmed') return s==='confirmed';
     if(currentFilter==='unconfirmed') return s==='unconfirmed';
     if(currentFilter==='caution') return s==='caution';

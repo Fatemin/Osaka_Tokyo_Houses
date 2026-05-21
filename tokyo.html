@@ -95,7 +95,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Noto Sans JP'
 .tag-caution{background:var(--red-bg);color:var(--red-text);cursor:pointer}
 
 /* ===== DETAIL PANEL ===== */
-.detail-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.25);z-index:40;}
+.detail-overlay{display:none;position:fixed;top:87px;left:0;right:0;bottom:0;background:rgba(0,0,0,0.25);z-index:40;}
 .detail-overlay.open{display:block}
 .detail-panel{position:fixed;top:87px;right:0;bottom:0;width:min(560px,100vw);background:var(--bg);border-left:0.5px solid var(--border);overflow-y:auto;z-index:45;transform:translateX(100%);transition:transform 0.22s cubic-bezier(.4,0,.2,1);}
 .detail-panel.open{transform:translateX(0)}
